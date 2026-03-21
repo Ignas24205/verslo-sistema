@@ -3,7 +3,7 @@
 // Required env vars: RESEND_API_KEY, FROM_EMAIL (optional, defaults to onboarding@resend.dev)
 // SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are injected automatically.
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from '@supabase/supabase-js';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
