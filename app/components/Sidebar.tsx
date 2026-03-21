@@ -12,9 +12,14 @@ import {
   CalendarDays,
   Tag,
   Users,
+  Receipt,
+  BookOpen,
+  BarChart2,
+  Settings,
   LogOut,
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
+import NotificationsBell from "./NotificationsBell";
 
 const navItems = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -25,7 +30,11 @@ const navItems = [
   { label: "Warehouse", href: "/warehouse", icon: Package },
   { label: "Marketing", href: "/marketing", icon: Megaphone },
   { label: "Cashflow", href: "/cashflow", icon: TrendingUp },
+  { label: "Expenses", href: "/expenses", icon: Receipt },
+  { label: "Pricebook", href: "/pricebook", icon: BookOpen },
   { label: "Calendar", href: "/calendar", icon: CalendarDays },
+  { label: "Reports", href: "/reports", icon: BarChart2 },
+  { label: "Settings", href: "/settings", icon: Settings },
 ];
 
 export default function Sidebar() {
@@ -41,10 +50,11 @@ export default function Sidebar() {
 
   return (
     <aside className="flex h-screen w-56 flex-col border-r border-zinc-200 bg-white">
-      <div className="flex h-14 items-center border-b border-zinc-200 px-4">
+      <div className="flex h-14 items-center justify-between border-b border-zinc-200 px-4">
         <span className="text-sm font-semibold tracking-tight text-zinc-900">
-          Verslo Sistema
+          Sun Closets System
         </span>
+        <NotificationsBell />
       </div>
       <nav className="flex flex-1 flex-col gap-1 p-2">
         {navItems.map(({ label, href, icon: Icon }) => {

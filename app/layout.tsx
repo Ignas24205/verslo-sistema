@@ -9,8 +9,8 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "Verslo Sistema",
-  description: "Verslo valdymo sistema",
+  title: "Sun Closets System",
+  description: "Sun Closets business management system",
 };
 
 export default function RootLayout({
@@ -19,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="lt">
+    <html lang="en">
       <body className={`${geistSans.variable} antialiased`}>
         <LayoutShell>{children}</LayoutShell>
       </body>

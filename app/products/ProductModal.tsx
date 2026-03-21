@@ -16,6 +16,8 @@ export type Product = {
   stock: number;
   min_stock: number;
   active: boolean;
+  created_by: string | null;
+  updated_by: string | null;
 };
 
 type FormData = {
@@ -86,9 +88,12 @@ export default function ProductModal({ product, onClose, onSaved }: Props) {
     };
 
     const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const userEmail = user?.email ?? null;
+
     const { error } = isEdit
-      ? await supabase.from("products").update(payload).eq("id", product!.id)
-      : await supabase.from("products").insert(payload);
+      ? await supabase.from("products").update({ ...payload, updated_by: userEmail }).eq("id", product!.id)
+      : await supabase.from("products").insert({ ...payload, created_by: userEmail, updated_by: userEmail });
 
     if (error) {
       setError(error.message);
@@ -209,6 +214,17 @@ export default function ProductModal({ product, onClose, onSaved }: Props) {
                     }`}
                   />
                 </button>
+              </div>
+            )}
+
+            {isEdit && (product?.created_by || product?.updated_by) && (
+              <div className="rounded-md border border-zinc-100 bg-zinc-50 px-3 py-2.5 space-y-1">
+                {product.created_by && (
+                  <p className="text-xs text-zinc-400">Created by: <span className="text-zinc-600">{product.created_by}</span></p>
+                )}
+                {product.updated_by && (
+                  <p className="text-xs text-zinc-400">Last updated by: <span className="text-zinc-600">{product.updated_by}</span></p>
+                )}
               </div>
             )}
 

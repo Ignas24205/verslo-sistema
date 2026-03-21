@@ -146,6 +146,12 @@ export default function ProjectDetailPage() {
           <InfoRow label="Start date" value={fmtDate(project.start_date)} />
           <InfoRow label="End date" value={fmtDate(project.end_date)} />
           <InfoRow label="Planned invoice date" value={fmtDate(project.invoice_date)} />
+          {project.created_by && (
+            <InfoRow label="Created by" value={<span className="text-zinc-500">{project.created_by}</span>} />
+          )}
+          {project.updated_by && (
+            <InfoRow label="Last updated by" value={<span className="text-zinc-500">{project.updated_by}</span>} />
+          )}
         </div>
 
         {/* Financial summary */}

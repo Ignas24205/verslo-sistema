@@ -30,7 +30,7 @@ export default function AddStockModal({ products, onClose, onSaved }: Props) {
     e.preventDefault();
     const qtyNum = parseFloat(qty);
     if (!productId || isNaN(qtyNum) || qtyNum <= 0) {
-      setError("Pasirinkite produktą ir įveskite teigiamą kiekį.");
+      setError("Select a product and enter a positive quantity.");
       return;
     }
     setSaving(true);
@@ -40,11 +40,15 @@ export default function AddStockModal({ products, onClose, onSaved }: Props) {
     const product = products.find((p) => p.id === productId);
     if (!product) { setSaving(false); return; }
 
+    const { data: { user } } = await supabase.auth.getUser();
+    const userEmail = user?.email ?? null;
+
     const { error: movErr } = await supabase.from("warehouse_movements").insert({
       product_id: productId,
       type: "add",
       qty: qtyNum,
       note: note.trim() || null,
+      created_by: userEmail,
     });
     if (movErr) { setError(movErr.message); setSaving(false); return; }
 
@@ -71,7 +75,7 @@ export default function AddStockModal({ products, onClose, onSaved }: Props) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-zinc-700 mb-1">Produktas</label>
+            <label className="block text-sm font-medium text-zinc-700 mb-1">Product</label>
             <select
               value={productId}
               onChange={(e) => setProductId(e.target.value)}
@@ -80,14 +84,14 @@ export default function AddStockModal({ products, onClose, onSaved }: Props) {
             >
               {products.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.name} ({p.unit}) — dabartinis: {p.stock}
+                  {p.name} ({p.unit}) — in stock: {p.stock}
                 </option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-zinc-700 mb-1">Kiekis</label>
+            <label className="block text-sm font-medium text-zinc-700 mb-1">Quantity</label>
             <input
               type="number"
               min="0.001"
@@ -101,13 +105,13 @@ export default function AddStockModal({ products, onClose, onSaved }: Props) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-zinc-700 mb-1">Pastaba (neprivaloma)</label>
+            <label className="block text-sm font-medium text-zinc-700 mb-1">Note (optional)</label>
             <input
               type="text"
               value={note}
               onChange={(e) => setNote(e.target.value)}
               className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
-              placeholder="pvz. Tiekėjo pristatymas"
+              placeholder="e.g. Supplier delivery"
             />
           </div>
 
@@ -119,14 +123,14 @@ export default function AddStockModal({ products, onClose, onSaved }: Props) {
               onClick={onClose}
               className="rounded-md px-4 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-100"
             >
-              Atšaukti
+              Cancel
             </button>
             <button
               type="submit"
               disabled={saving}
               className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-50"
             >
-              {saving ? "Saugoma..." : "Pridėti"}
+              {saving ? "Saving..." : "Add"}
             </button>
           </div>
         </form>

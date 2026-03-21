@@ -6,6 +6,19 @@ Tai verslo valdymo sistema skirta individualiam verslui. Sistema leidžia sekti 
 
 ---
 
+## Business Context
+
+- **Rinka:** JAV (United States), **Florida** valstija
+- **Valiuta:** USD ($) — visi kainų laukai, KPI ir grafikai rodo dolerius
+- **Klientai:** gali būti **Individual** (fizinis asmuo) arba **Business** (įmonė)
+- **Mokesčiai:** JAV nėra PVM (VAT) — naudojamas **Sales Tax** (Florida: ~6–7%). Sistema šiuo metu Sales Tax netraukia į skaičiavimus — reikalui esant pridėti atskirą lauką
+- **Adresų formatas:** JAV — `Street, City, State, ZIP` (pvz. `123 Main St, Orlando, FL 32801`), ne ES formatas
+- **Telefonų formatas:** JAV — `+1 (XXX) XXX-XXXX`
+- **Datos formatas:** `MM/DD/YYYY` arba `Month DD, YYYY` (ne `DD/MM/YYYY`)
+- **Kalbos pastaba:** UI anglų kalba; komentarai kode gali būti lietuviškai arba angliškai
+
+---
+
 ## Tech Stack
 
 - **Frontend:** Next.js su TypeScript

@@ -32,6 +32,7 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50">
       <div className="w-full max-w-sm rounded-lg border border-zinc-200 bg-white p-8 shadow-sm">
+        <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-zinc-400">Sun Closets System</p>
         <h1 className="mb-6 text-xl font-semibold text-zinc-900">Sign in</h1>
         <form onSubmit={handleLogin} className="flex flex-col gap-4">
           <div>

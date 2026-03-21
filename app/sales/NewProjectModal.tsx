@@ -50,6 +50,9 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
     setLoading(true);
 
     const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const userEmail = user?.email ?? null;
+
     const { error } = await supabase.from("projects").insert({
       name: form.name,
       client: form.client,
@@ -60,6 +63,8 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
       work_revenue: parseFloat(form.work_revenue) || 0,
       extra_costs: parseFloat(form.extra_costs) || 0,
       notes: form.notes || null,
+      created_by: userEmail,
+      updated_by: userEmail,
     });
 
     if (error) {

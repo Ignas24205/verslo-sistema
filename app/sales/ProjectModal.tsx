@@ -9,6 +9,7 @@ const OP_STATUSES = ["In progress", "Finished"];
 const FIN_STATUSES = ["Not invoiced", "Invoiced", "Paid", "Overdue"];
 
 type Customer = { id: string; name: string };
+type CustomerPrice = { product_id: string; sell_price: number; customer_id: string | null; valid_from: string | null };
 
 export type Project = {
   id: string;
@@ -27,6 +28,8 @@ export type Project = {
   extra_costs: number;
   notes: string | null;
   created_at: string;
+  created_by: string | null;
+  updated_by: string | null;
 };
 
 type FormData = {
@@ -83,6 +86,8 @@ export default function ProjectModal({ project, onClose, onSaved }: Props) {
   const isEdit = !!project;
   const [form, setForm] = useState<FormData>(project ? toForm(project) : empty);
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [customerPrices, setCustomerPrices] = useState<CustomerPrice[]>([]);
+  const [priceSuggestion, setPriceSuggestion] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -92,12 +97,35 @@ export default function ProjectModal({ project, onClose, onSaved }: Props) {
 
   useEffect(() => {
     const supabase = createClient();
-    supabase
-      .from("customers")
-      .select("id, name")
-      .order("name")
-      .then(({ data }) => setCustomers(data ?? []));
+    Promise.all([
+      supabase.from("customers").select("id, name").order("name"),
+      supabase.from("customer_prices").select("product_id, sell_price, customer_id, valid_from"),
+    ]).then(([{ data: custs }, { data: prices }]) => {
+      setCustomers(custs ?? []);
+      setCustomerPrices(prices ?? []);
+    });
   }, []);
+
+  // Suggest work revenue from pricebook when customer changes
+  useEffect(() => {
+    if (!form.customer_id || customerPrices.length === 0) {
+      setPriceSuggestion(null);
+      return;
+    }
+    const matches = customerPrices.filter((cp) => cp.customer_id === form.customer_id);
+    if (matches.length === 0) {
+      setPriceSuggestion(null);
+      return;
+    }
+    // Pick the most recent valid price
+    const sorted = [...matches].sort((a, b) => {
+      if (!a.valid_from && !b.valid_from) return 0;
+      if (!a.valid_from) return 1;
+      if (!b.valid_from) return -1;
+      return b.valid_from.localeCompare(a.valid_from);
+    });
+    setPriceSuggestion(sorted[0].sell_price);
+  }, [form.customer_id, customerPrices]);
 
   function set(field: keyof FormData, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -123,9 +151,12 @@ export default function ProjectModal({ project, onClose, onSaved }: Props) {
     };
 
     const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const userEmail = user?.email ?? null;
+
     const { error } = isEdit
-      ? await supabase.from("projects").update(payload).eq("id", project!.id)
-      : await supabase.from("projects").insert(payload);
+      ? await supabase.from("projects").update({ ...payload, updated_by: userEmail }).eq("id", project!.id)
+      : await supabase.from("projects").insert({ ...payload, created_by: userEmail, updated_by: userEmail });
 
     if (error) {
       setError(error.message);
@@ -181,6 +212,21 @@ export default function ProjectModal({ project, onClose, onSaved }: Props) {
                 ))}
               </select>
             </Field>
+
+            {priceSuggestion !== null && !isEdit && (
+              <div className="flex items-center justify-between rounded-md border border-blue-100 bg-blue-50 px-3 py-2.5">
+                <span className="text-xs text-blue-700">
+                  Pricebook suggests <strong>€{priceSuggestion.toFixed(2)}</strong> for this customer
+                </span>
+                <button
+                  type="button"
+                  onClick={() => set("work_revenue", priceSuggestion.toString())}
+                  className="ml-3 rounded px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100"
+                >
+                  Apply
+                </button>
+              </div>
+            )}
 
             <Field label="Lead source" required>
               <select

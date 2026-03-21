@@ -12,6 +12,7 @@ type Movement = {
   qty: number;
   note: string | null;
   created_at: string;
+  created_by: string | null;
   product: { name: string; unit: string } | null;
   project: { name: string } | null;
 };
@@ -55,7 +56,7 @@ export default function WarehousePage() {
         .order("name", { ascending: true }),
       supabase
         .from("warehouse_movements")
-        .select("id, type, qty, note, created_at, product:products(name, unit), project:sales(name)")
+        .select("id, type, qty, note, created_at, created_by, product:products(name, unit), project:sales(name)")
         .order("created_at", { ascending: false })
         .limit(100),
     ]);
@@ -86,7 +87,7 @@ export default function WarehousePage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold text-zinc-900">Warehouse</h1>
-          <p className="mt-0.5 text-sm text-zinc-500">Sandėlio likučiai ir judėjimai</p>
+          <p className="mt-0.5 text-sm text-zinc-500">Warehouse stock and movements</p>
         </div>
         <div className="flex gap-2">
           <button
@@ -111,19 +112,19 @@ export default function WarehousePage() {
         <div className="rounded-lg border border-zinc-200 bg-white p-5">
           <div className="flex items-center gap-2 text-zinc-500">
             <TrendingUp size={16} />
-            <span className="text-xs font-medium uppercase tracking-wide">Bendra vertė</span>
+            <span className="text-xs font-medium uppercase tracking-wide">Total value</span>
           </div>
           <p className="mt-2 text-2xl font-semibold text-zinc-900">{fmt(totalValue)}</p>
-          <p className="mt-0.5 text-xs text-zinc-400">qty × savikaina</p>
+          <p className="mt-0.5 text-xs text-zinc-400">qty × cost price</p>
         </div>
 
         <div className="rounded-lg border border-zinc-200 bg-white p-5">
           <div className="flex items-center gap-2 text-zinc-500">
             <Clock size={16} />
-            <span className="text-xs font-medium uppercase tracking-wide">Užsakyta, neatvežta</span>
+            <span className="text-xs font-medium uppercase tracking-wide">Ordered, not delivered</span>
           </div>
           <p className="mt-2 text-2xl font-semibold text-zinc-900">—</p>
-          <p className="mt-0.5 text-xs text-zinc-400">Pirkimų modulis dar nekurtas</p>
+          <p className="mt-0.5 text-xs text-zinc-400">Purchasing module not yet built</p>
         </div>
 
         <div className="rounded-lg border border-zinc-200 bg-white p-5">
@@ -134,19 +135,19 @@ export default function WarehousePage() {
           <p className={`mt-2 text-2xl font-semibold ${lowStockCount > 0 ? "text-red-600" : "text-zinc-900"}`}>
             {lowStockCount}
           </p>
-          <p className="mt-0.5 text-xs text-zinc-400">produktų žemiau min kiekio</p>
+          <p className="mt-0.5 text-xs text-zinc-400">products below minimum qty</p>
         </div>
       </div>
 
       {/* Products table */}
       <div className="mt-8">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500 mb-3">Produktai sandėlyje</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500 mb-3">Products in warehouse</h2>
         <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-zinc-200">
               <thead>
                 <tr className="bg-zinc-50">
-                  {["Produktas", "SKU vienetai", "Kiekis", "Min kiekis", "Savikaina", "Vertė", ""].map((col) => (
+                  {["Product", "Unit", "Qty", "Min qty", "Cost price", "Value", ""].map((col) => (
                     <th
                       key={col}
                       className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500"
@@ -160,14 +161,14 @@ export default function WarehousePage() {
                 {loading && (
                   <tr>
                     <td colSpan={7} className="px-4 py-8 text-center text-sm text-zinc-400">
-                      Kraunama...
+                      Loading...
                     </td>
                   </tr>
                 )}
                 {!loading && products.length === 0 && (
                   <tr>
                     <td colSpan={7} className="px-4 py-8 text-center text-sm text-zinc-400">
-                      Produktų nerasta. Pirmiausia sukurkite produktus skiltyje Products.
+                      No products found. Create products in the Products section first.
                     </td>
                   </tr>
                 )}
@@ -207,13 +208,13 @@ export default function WarehousePage() {
 
       {/* Movement history */}
       <div className="mt-8">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500 mb-3">Judėjimo istorija</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500 mb-3">Movement history</h2>
         <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-zinc-200">
               <thead>
                 <tr className="bg-zinc-50">
-                  {["Data", "Tipas", "Produktas", "Kiekis", "Projektas", "Pastaba"].map((col) => (
+                  {["Date", "Type", "Product", "Qty", "Project", "Note", "By"].map((col) => (
                     <th
                       key={col}
                       className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500"
@@ -226,8 +227,8 @@ export default function WarehousePage() {
               <tbody className="divide-y divide-zinc-100">
                 {!loading && movements.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-sm text-zinc-400">
-                      Judėjimų dar nėra.
+                    <td colSpan={7} className="px-4 py-8 text-center text-sm text-zinc-400">
+                      No movements yet.
                     </td>
                   </tr>
                 )}
@@ -243,7 +244,7 @@ export default function WarehousePage() {
                         }`}
                       >
                         {m.type === "add" ? <Plus size={10} /> : <Minus size={10} />}
-                        {m.type === "add" ? "Pridėta" : "Nurašyta"}
+                        {m.type === "add" ? "Added" : "Removed"}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm font-medium text-zinc-900">
@@ -257,6 +258,7 @@ export default function WarehousePage() {
                     </td>
                     <td className="px-4 py-3 text-sm text-zinc-500">{m.project?.name ?? "—"}</td>
                     <td className="px-4 py-3 text-sm text-zinc-400">{m.note ?? "—"}</td>
+                    <td className="px-4 py-3 text-xs text-zinc-400">{m.created_by ?? "—"}</td>
                   </tr>
                 ))}
               </tbody>
